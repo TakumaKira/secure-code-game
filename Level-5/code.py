@@ -1,5 +1,4 @@
 import binascii
-import random
 import secrets
 import hashlib
 import os
@@ -7,19 +6,18 @@ import bcrypt
 
 class Random_generator:
 
-    # generates a random token
+    # generates a random token using the secrets library for true randomness
     def generate_token(self, length=8, alphabet=(
     '0123456789'
     'abcdefghijklmnopqrstuvwxyz'
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZ' 
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     )):
-        return ''.join(random.choice(alphabet) for i in range(length))
+        return ''.join(secrets.choice(alphabet) for i in range(length))
 
-    # generates salt
+    # generates salt using the bcrypt library which is a safe implementation
     def generate_salt(self, rounds=22):
-        first_phrase = ''.join(str(random.randint(0,9)) for i in range(rounds))
-        second_phase = '$2b$12$' + first_phrase
-        return second_phase.encode()
+        return bcrypt.gensalt()
+        # didn't supply the rounds variable to gensalt() because it takes way longer to run
 
 class SHA256_hasher:
 
@@ -35,18 +33,8 @@ class SHA256_hasher:
         password_hash = password_hash.encode('ascii')
         return bcrypt.checkpw(password, password_hash)
 
-class MD5_hasher:
-    
-    # same as above but using a different algorithm to hash which is MD5
-    def password_hash(self, password):
-        return hashlib.md5(password.encode()).hexdigest()
-
-    def password_verification(self, password, password_hash):
-        password = self.password_hash(password)
-        return secrets.compare_digest(password.encode(), password_hash.encode())    
-
 # a collection of sensitive secrets necessary for the software to operate
 PRIVATE_KEY = os.environ.get('PRIVATE_KEY')
 PUBLIC_KEY = os.environ.get('PUBLIC_KEY')
-SECRET_KEY = 'TjWnZr4u7x!A%D*G-KaPdSgVkXp2s5v8'
-PASSWORD_HASHER = 'MD5_hasher'
+SECRET_KEY = os.environ.get('SECRET_KEY')
+PASSWORD_HASHER = 'SHA256_hasher'
