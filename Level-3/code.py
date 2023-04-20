@@ -23,13 +23,10 @@ class TaxPayer:
         if not path:
             pass
 
-        # defends against path traversal attacks
-        if path.startswith('/') or ".." in path:
+        # builds safe path(defends against path traversal attacks)
+        prof_picture_path = safe_path(path)
+        if prof_picture_path == None:
             return None
-
-        # builds path
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        prof_picture_path = os.path.normpath(os.path.join(base_dir, path))
 
         with open(prof_picture_path, 'rb') as pic:
             picture = bytearray(pic.read())
@@ -44,8 +41,9 @@ class TaxPayer:
         if not path:
             raise Exception("Error: Tax form is required for all users")
 
-        # defends against path traversal attacks
-        if path.startswith('/') or ".." in path:
+        # builds safe path(defends against path traversal attacks)
+        path = safe_path(path)
+        if path == None:
             return None
 
         with open(path, 'rb') as form:
@@ -53,3 +51,10 @@ class TaxPayer:
 
         # assume that taxa data is returned on screen after this
         return path
+
+def safe_path(path):
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    filepath = os.path.normpath(os.path.join(base_dir, path))
+    if base_dir != os.path.commonpath([base_dir, filepath]):
+        return None
+    return filepath
