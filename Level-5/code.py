@@ -1,13 +1,11 @@
-import binascii
 import secrets
-import hashlib
 import os
 import bcrypt
 
 class Random_generator:
 
     # generates a random token using the secrets library for true randomness
-    def generate_token(self, length=8, alphabet=(
+    def generate_token(self, length=32, alphabet=(
     '0123456789'
     'abcdefghijklmnopqrstuvwxyz'
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -23,15 +21,11 @@ class SHA256_hasher:
 
     # produces the password hash by combining password + salt because hashing
     def password_hash(self, password, salt):
-        password = binascii.hexlify(hashlib.sha256(password.encode()).digest())
-        password_hash = bcrypt.hashpw(password, salt)
-        return password_hash.decode('ascii')
+        return bcrypt.hashpw(password.encode(), salt)
 
     # verifies that the hashed password reverses to the plain text version on verification
     def password_verification(self, password, password_hash):
-        password = binascii.hexlify(hashlib.sha256(password.encode()).digest())
-        password_hash = password_hash.encode('ascii')
-        return bcrypt.checkpw(password, password_hash)
+        return bcrypt.checkpw(password.encode(), password_hash)
 
 # a collection of sensitive secrets necessary for the software to operate
 PRIVATE_KEY = os.environ.get('PRIVATE_KEY')
