@@ -1,5 +1,6 @@
 import os
 from flask import Flask, request
+from werkzeug.utils import secure_filename
 
 ### Unrelated to the exercise -- Starts here -- Please ignore
 app = Flask(__name__)
@@ -8,6 +9,17 @@ def source():
     TaxPayer('foo', 'bar').get_tax_form_attachment(request.args["input"])
     TaxPayer('foo', 'bar').get_prof_picture(request.args["input"])
 ### Unrelated to the exercise -- Ends here -- Please ignore
+
+# Function to validate Path of file and perform checks
+def validatePath(path, base_dir=os.path.dirname(os.path.abspath(__file__))):
+    fileName = secure_filename(path)
+    validatedPath = os.path.normpath(os.path.join(base_dir, fileName))
+
+    return validatedPath;
+
+# Function To check is file exist
+def IsFileExist(fileName):
+    return os.path.isfile(fileName);
 
 class TaxPayer:
 
@@ -23,16 +35,18 @@ class TaxPayer:
         if not path:
             pass
 
-        # builds safe path defending against path traversal attacks
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        prof_picture_path = os.path.normpath(os.path.join(base_dir, path))
-        if base_dir != os.path.commonpath([base_dir, prof_picture_path]):
+        # defends against path traversal attacks
+        if path.startswith('/') or path.startswith('..'):
             return None
 
-        with open(prof_picture_path, 'rb') as pic:
-            picture = bytearray(pic.read())
+        # builds path
+        prof_picture_path = validatePath(path)
 
-        # assume that image is returned on screen after this
+        # opening if file exists
+        if IsFileExist(prof_picture_path):
+                with open(prof_picture_path, 'rb') as pic:
+                    return pic.read()
+
         return prof_picture_path
 
     # returns the path of an attached tax form that every user should submit
@@ -42,14 +56,13 @@ class TaxPayer:
         if not path:
             raise Exception("Error: Tax form is required for all users")
 
-        # builds safe path defending against path traversal attacks
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        filepath = os.path.normpath(os.path.join(base_dir, path))
-        if base_dir != os.path.commonpath([base_dir, filepath]):
-            return None
+        # validate the input path
+        text_data_path = validatePath(path)
 
-        with open(path, 'rb') as form:
-            tax_data = bytearray(form.read())
+        # opening if file exists
+        if IsFileExist(text_data_path):
+            with open(text_data_path, 'rb') as form:
+                tax_data = bytearray(form.read())
 
         # assume that taxa data is returned on screen after this
         return path
