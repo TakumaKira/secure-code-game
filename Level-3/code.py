@@ -1,5 +1,6 @@
 import os
 from flask import Flask, request
+from werkzeug.utils import secure_filename
 
 ### Unrelated to the exercise -- Starts here -- Please ignore
 app = Flask(__name__)
@@ -57,4 +58,6 @@ def safe_path(path):
     filepath = os.path.normpath(os.path.join(base_dir, path))
     if base_dir != os.path.commonpath([base_dir, filepath]):
         return None
-    return filepath
+    (dir, file) = os.path.split(filepath)
+    safe_path = os.path.join(dir, secure_filename(file))
+    return safe_path
